@@ -1,0 +1,88 @@
+# The binaries are prebuilt upstream and shipped in the source tarball, so
+# debuginfo extraction, build-id links and stripping are all switched off.
+%global debug_package %{nil}
+%global _build_id_links none
+%global __strip /usr/bin/true
+
+%ifarch x86_64
+%global goarch amd64
+%endif
+%ifarch aarch64
+%global goarch arm64
+%endif
+
+Name:           lerd
+Version:        @VERSION@
+Release:        @REVISION@%{?dist}
+Summary:        Herd-like local PHP development environment
+License:        MIT
+URL:            https://lerd.sh
+Source0:        lerd-%{version}.tar.gz
+ExclusiveArch:  x86_64 aarch64
+Requires:       podman
+Recommends:     libayatana-appindicator-gtk3
+
+%description
+Lerd runs Nginx, PHP-FPM, and services as rootless Podman containers, with a
+built-in web UI, TUI, CLI, and MCP server. No Docker, no sudo, no system
+pollution.
+
+This package installs the prebuilt lerd binary published on each upstream
+release. Run "lerd install" once after installing to set up the stack.
+
+%prep
+%setup -q
+
+%build
+# Nothing to build; the tarball ships the binaries.
+
+%install
+install -Dm0755 prebuilt/%{goarch}/lerd %{buildroot}%{_bindir}/lerd
+%ifarch x86_64
+install -Dm0755 prebuilt/%{goarch}/lerd-tray %{buildroot}%{_bindir}/lerd-tray
+%endif
+
+%post
+# dnf runs as root, but lerd is rootless and per-user. On a single-user desktop
+# we finish setup automatically: the root-level, machine-global steps run here
+# as root, then the per-user half runs as the human who invoked dnf. This needs
+# a lerd that supports the unattended split (lerd bootstrap --system and
+# lerd install --unattended); older builds fall back to a manual nudge.
+auto_setup() {
+    [ -d /run/systemd/system ] || return 1
+    user="${SUDO_USER:-}"
+    [ -n "$user" ] && [ "$user" != root ] || return 1
+    uid="$(id -u "$user" 2>/dev/null)" || return 1
+
+    lerd bootstrap --help >/dev/null 2>&1 || return 1
+
+    # Linger first so the user's systemd instance is alive even with nobody
+    # logged in; then the root prerequisites (ports, linger, DNS sudoers); then
+    # the rootless install as the user; then trust the CA it generated in the
+    # system store. This order lets managed .test DNS work with no prompts.
+    loginctl enable-linger "$user" || :
+    lerd bootstrap --system --user "$user" || :
+    runuser -u "$user" -- env "XDG_RUNTIME_DIR=/run/user/$uid" \
+        lerd install --unattended || :
+    lerd bootstrap --trust-ca --user "$user" || :
+    return 0
+}
+
+if auto_setup; then
+    echo "lerd is set up and running. Open the dashboard from the tray or run 'lerd'."
+else
+    echo "lerd installed. Run 'lerd install' once to set up the stack."
+    echo "Keep it current with 'sudo dnf upgrade'."
+fi
+exit 0
+
+%files
+%license LICENSE
+%{_bindir}/lerd
+%ifarch x86_64
+%{_bindir}/lerd-tray
+%endif
+
+%changelog
+* @DATE@ George Dumitrescu <george@dumitres.co> - @VERSION@-@REVISION@
+- Automated packaging of lerd @VERSION@.

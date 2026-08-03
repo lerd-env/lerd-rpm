@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch: {}
+
+jobs:
+  build-rpm:
+    name: Build and verify .rpm
+    runs-on: ubuntu-latest
+    container: registry.fedoraproject.org/fedora:latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install packaging tools
+        run: dnf install -y rpm-build curl tar gzip jq git-core
+
+      - name: Build binary package and assert contents
+        run: |
+          version=$(cat published-version)
+          if [ "$version" = "0.0.0" ]; then
+            version=$(curl -fsSL https://api.github.com/repos/lerd-env/lerd/releases/latest | jq -r .tag_name)
+            version=${version#v}
+          fi
+          echo "Building for lerd ${version}"
+          scripts/build-binary.sh "$version"
+
+      - name: Install the package and check the manual-setup fallback
+        run: |
+          dnf install -y dist/lerd-*.rpm
+          test -x /usr/bin/lerd
