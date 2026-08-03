@@ -6,7 +6,7 @@ set -euo pipefail
 RELEASE_REPO="lerd-env/lerd"
 
 # COPR project to publish to, as owner/project.
-COPR_PROJECT="${COPR_PROJECT:-lerd/lerd}"
+COPR_PROJECT="${COPR_PROJECT:-georged/lerd}"
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
