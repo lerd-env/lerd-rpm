@@ -1,7 +1,7 @@
 # lerd-rpm
 
 > Open-source Herd-like local PHP development environment, packaged for Fedora
-> and published to the [`lerd/lerd`](https://copr.fedorainfracloud.org/coprs/lerd/lerd/)
+> and published to the [`georged/lerd`](https://copr.fedorainfracloud.org/coprs/georged/lerd/)
 > COPR.
 
 [![CI](https://github.com/lerd-env/lerd-rpm/actions/workflows/ci.yml/badge.svg)](https://github.com/lerd-env/lerd-rpm/actions/workflows/ci.yml)
@@ -27,7 +27,7 @@ The COPR builds for every Fedora release in standard support (the project
 follows Fedora branching, so new releases are picked up automatically):
 
 ```bash
-sudo dnf copr enable lerd/lerd
+sudo dnf copr enable georged/lerd
 sudo dnf install lerd
 lerd install
 ```
@@ -67,7 +67,7 @@ every push and asserts it installs `/usr/bin/lerd`.
 The publishing workflow needs a COPR project and an API token:
 
 - A [Fedora Account System](https://accounts.fedoraproject.org/) account that
-  owns the COPR project named in `COPR_PROJECT` (`lerd/lerd` by default;
+  owns the COPR project named in `COPR_PROJECT` (`georged/lerd` by default;
   override the variable if the owner differs).
 - The project created at [copr.fedorainfracloud.org](https://copr.fedorainfracloud.org)
   with the `fedora-*-x86_64` and `fedora-*-aarch64` chroots of the current
