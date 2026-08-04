@@ -1,7 +1,7 @@
 # lerd-rpm
 
 > Open-source Herd-like local PHP development environment, packaged for Fedora
-> and published to the [`georged/lerd`](https://copr.fedorainfracloud.org/coprs/georged/lerd/)
+> and openSUSE and published to the [`georged/lerd`](https://copr.fedorainfracloud.org/coprs/georged/lerd/)
 > COPR.
 
 [![CI](https://github.com/lerd-env/lerd-rpm/actions/workflows/ci.yml/badge.svg)](https://github.com/lerd-env/lerd-rpm/actions/workflows/ci.yml)
@@ -17,11 +17,13 @@
 [Podman](https://podman.io) containers: automatic `.test` domains with HTTPS,
 per-project PHP versions, one-click databases and services, a built-in web UI,
 TUI, CLI and MCP server. No Docker, no sudo, no system pollution. This repo
-makes it a first-class Fedora citizen: `dnf install lerd` brings up the whole
-stack on its own, and every update after that arrives with your normal system
-updates.
+makes it a first-class Fedora and openSUSE citizen: `dnf install lerd` (or
+`zypper install lerd`) brings up the whole stack on its own, and every update
+after that arrives with your normal system updates.
 
 ## Install
+
+### Fedora
 
 The COPR builds for every Fedora release in standard support (the project
 follows Fedora branching, so new releases are picked up automatically):
@@ -36,6 +38,25 @@ Updates arrive through dnf like any other package:
 
 ```bash
 sudo dnf upgrade
+```
+
+### openSUSE
+
+The COPR also builds for openSUSE Tumbleweed and Leap. zypper has no
+`copr enable`, so add the repo file COPR generates for your distribution
+(swap `opensuse-tumbleweed` for `opensuse-leap-16.0` on Leap):
+
+```bash
+sudo zypper addrepo https://copr.fedorainfracloud.org/coprs/georged/lerd/repo/opensuse-tumbleweed/georged-lerd.repo
+sudo zypper refresh
+sudo zypper install lerd
+lerd install
+```
+
+Updates arrive through zypper like any other package:
+
+```bash
+sudo zypper update
 ```
 
 ## How it works
@@ -73,6 +94,9 @@ The publishing workflow needs a COPR project and an API token:
   with the `fedora-*-x86_64` and `fedora-*-aarch64` chroots of the current
   releases enabled, and "Follow Fedora branching" switched on so new releases
   are enabled automatically.
+- The `opensuse-tumbleweed-*` and `opensuse-leap-*` chroots enabled for the
+  openSUSE builds. Follow Fedora branching does not cover these, so a new Leap
+  release needs its chroots enabled by hand.
 - `COPR_API_CONFIG` secret: the contents of the API token file from
   [copr.fedorainfracloud.org/api](https://copr.fedorainfracloud.org/api/).
 
