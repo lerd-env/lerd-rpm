@@ -31,3 +31,28 @@ jobs:
         run: |
           dnf install -y dist/lerd-*.rpm
           test -x /usr/bin/lerd
+
+  build-rpm-suse:
+    name: Build and verify .rpm (openSUSE)
+    runs-on: ubuntu-latest
+    container: registry.opensuse.org/opensuse/tumbleweed:latest
+    steps:
+      - name: Install packaging tools
+        run: zypper --non-interactive install rpm-build curl tar gzip jq git-core
+
+      - uses: actions/checkout@v4
+
+      - name: Build binary package and assert contents
+        run: |
+          version=$(cat published-version)
+          if [ "$version" = "0.0.0" ]; then
+            version=$(curl -fsSL https://api.github.com/repos/lerd-env/lerd/releases/latest | jq -r .tag_name)
+            version=${version#v}
+          fi
+          echo "Building for lerd ${version}"
+          scripts/build-binary.sh "$version"
+
+      - name: Install the package and check the manual-setup fallback
+        run: |
+          zypper --non-interactive --no-gpg-checks install ./dist/lerd-*.rpm
+          test -x /usr/bin/lerd

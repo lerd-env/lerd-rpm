@@ -20,7 +20,12 @@ URL:            https://lerd.sh
 Source0:        lerd-%{version}.tar.gz
 ExclusiveArch:  x86_64 aarch64
 Requires:       podman
+# The tray library carries a different name on openSUSE.
+%if 0%{?suse_version}
+Recommends:     libayatana-appindicator3-1
+%else
 Recommends:     libayatana-appindicator-gtk3
+%endif
 
 %description
 Lerd runs Nginx, PHP-FPM, and services as rootless Podman containers, with a
@@ -28,7 +33,8 @@ built-in web UI, TUI, CLI, and MCP server. No Docker, no sudo, no system
 pollution.
 
 This package installs the prebuilt lerd binary published on each upstream
-release. Run "lerd install" once after installing to set up the stack.
+release. On a single-user desktop setup finishes automatically on install;
+otherwise run "lerd install" once.
 
 %prep
 %setup -q
@@ -43,9 +49,10 @@ install -Dm0755 prebuilt/%{goarch}/lerd-tray %{buildroot}%{_bindir}/lerd-tray
 %endif
 
 %post
-# dnf runs as root, but lerd is rootless and per-user. On a single-user desktop
-# we finish setup automatically: the root-level, machine-global steps run here
-# as root, then the per-user half runs as the human who invoked dnf. This needs
+# The package manager runs as root, but lerd is rootless and per-user. On a
+# single-user desktop we finish setup automatically: the root-level,
+# machine-global steps run here as root, then the per-user half runs as the
+# human who invoked the install. This needs
 # a lerd that supports the unattended split (lerd bootstrap --system and
 # lerd install --unattended); older builds fall back to a manual nudge.
 auto_setup() {
@@ -72,7 +79,11 @@ if auto_setup; then
     echo "lerd is set up and running. Open the dashboard from the tray or run 'lerd'."
 else
     echo "lerd installed. Run 'lerd install' once to set up the stack."
+%if 0%{?suse_version}
+    echo "Keep it current with 'sudo zypper update'."
+%else
     echo "Keep it current with 'sudo dnf upgrade'."
+%endif
 fi
 exit 0
 

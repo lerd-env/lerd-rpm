@@ -1,7 +1,7 @@
 # lerd-rpm
 
 > Open-source Herd-like local PHP development environment, packaged for Fedora
-> and published to the [`georged/lerd`](https://copr.fedorainfracloud.org/coprs/georged/lerd/)
+> and openSUSE and published to the [`georged/lerd`](https://copr.fedorainfracloud.org/coprs/georged/lerd/)
 > COPR.
 
 [![CI](https://github.com/lerd-env/lerd-rpm/actions/workflows/ci.yml/badge.svg)](https://github.com/lerd-env/lerd-rpm/actions/workflows/ci.yml)
@@ -17,11 +17,13 @@
 [Podman](https://podman.io) containers: automatic `.test` domains with HTTPS,
 per-project PHP versions, one-click databases and services, a built-in web UI,
 TUI, CLI and MCP server. No Docker, no sudo, no system pollution. This repo
-makes it a first-class Fedora citizen: `dnf install lerd` brings up the whole
-stack on its own, and every update after that arrives with your normal system
-updates.
+makes it a first-class Fedora and openSUSE citizen: `dnf install lerd` (or
+`zypper install lerd`) brings up the whole stack on its own, and every update
+after that arrives with your normal system updates.
 
 ## Install
+
+### Fedora
 
 The COPR builds for every Fedora release in standard support (the project
 follows Fedora branching, so new releases are picked up automatically):
@@ -29,13 +31,38 @@ follows Fedora branching, so new releases are picked up automatically):
 ```bash
 sudo dnf copr enable georged/lerd
 sudo dnf install lerd
-lerd install
 ```
+
+On a typical single-user desktop that is the whole setup: the package finishes
+it automatically, the machine-global steps as root, then the per-user install
+as the user who ran sudo. When it cannot (no systemd, not installed through
+sudo, a multi-user machine) it prints a note and you run `lerd install` once
+yourself.
 
 Updates arrive through dnf like any other package:
 
 ```bash
 sudo dnf upgrade
+```
+
+### openSUSE
+
+The COPR also builds for openSUSE Tumbleweed and Leap. zypper has no
+`copr enable`, so add the repo file COPR generates for your distribution
+(swap `opensuse-tumbleweed` for `opensuse-leap-16.0` on Leap):
+
+```bash
+sudo zypper addrepo https://copr.fedorainfracloud.org/coprs/georged/lerd/repo/opensuse-tumbleweed/georged-lerd.repo
+sudo zypper refresh
+sudo zypper install lerd
+```
+
+The same automatic setup runs here, with the same `lerd install` fallback.
+
+Updates arrive through zypper like any other package:
+
+```bash
+sudo zypper update
 ```
 
 ## How it works
@@ -57,7 +84,8 @@ with the `%{?dist}` tag (`.fc43`, `.fc44`, …) keeping the builds apart.
 `.github/workflows/publish.yml` polls the upstream repo daily. When a new
 release appears it builds the SRPM and submits it to COPR with `copr-cli`, then
 records the version in `published-version`. Manual runs are limited to repo
-admins.
+admins, and can republish the current version with a bumped revision for
+packaging-only fixes by filling in the version and revision inputs.
 
 `.github/workflows/ci.yml` builds a binary `.rpm` in a Fedora container on
 every push and asserts it installs `/usr/bin/lerd`.
@@ -73,6 +101,9 @@ The publishing workflow needs a COPR project and an API token:
   with the `fedora-*-x86_64` and `fedora-*-aarch64` chroots of the current
   releases enabled, and "Follow Fedora branching" switched on so new releases
   are enabled automatically.
+- The `opensuse-tumbleweed-*` and `opensuse-leap-*` chroots enabled for the
+  openSUSE builds. Follow Fedora branching does not cover these, so a new Leap
+  release needs its chroots enabled by hand.
 - `COPR_API_CONFIG` secret: the contents of the API token file from
   [copr.fedorainfracloud.org/api](https://copr.fedorainfracloud.org/api/).
 
