@@ -33,7 +33,8 @@ built-in web UI, TUI, CLI, and MCP server. No Docker, no sudo, no system
 pollution.
 
 This package installs the prebuilt lerd binary published on each upstream
-release. Run "lerd install" once after installing to set up the stack.
+release. On a single-user desktop setup finishes automatically on install;
+otherwise run "lerd install" once.
 
 %prep
 %setup -q

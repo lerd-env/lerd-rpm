@@ -31,8 +31,13 @@ follows Fedora branching, so new releases are picked up automatically):
 ```bash
 sudo dnf copr enable georged/lerd
 sudo dnf install lerd
-lerd install
 ```
+
+On a typical single-user desktop that is the whole setup: the package finishes
+it automatically, the machine-global steps as root, then the per-user install
+as the user who ran sudo. When it cannot (no systemd, not installed through
+sudo, a multi-user machine) it prints a note and you run `lerd install` once
+yourself.
 
 Updates arrive through dnf like any other package:
 
@@ -50,8 +55,9 @@ The COPR also builds for openSUSE Tumbleweed and Leap. zypper has no
 sudo zypper addrepo https://copr.fedorainfracloud.org/coprs/georged/lerd/repo/opensuse-tumbleweed/georged-lerd.repo
 sudo zypper refresh
 sudo zypper install lerd
-lerd install
 ```
+
+The same automatic setup runs here, with the same `lerd install` fallback.
 
 Updates arrive through zypper like any other package:
 
