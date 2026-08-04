@@ -4,7 +4,16 @@ on:
   schedule:
     # Daily at 09:45 UTC, a little after the deb publisher.
     - cron: "45 9 * * *"
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Republish this already-released version (packaging-only fixes); leave empty to check for a newer release"
+        required: false
+        default: ""
+      revision:
+        description: "Package revision for a republish"
+        required: false
+        default: "2"
 
 permissions:
   contents: write
@@ -49,7 +58,16 @@ jobs:
         id: check
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          FORCE_VERSION: ${{ github.event.inputs.version || '' }}
+          FORCE_REVISION: ${{ github.event.inputs.revision || '2' }}
         run: |
+          if [ -n "$FORCE_VERSION" ]; then
+            echo "Republishing ${FORCE_VERSION}-${FORCE_REVISION} on request."
+            echo "updated=true" >> "$GITHUB_OUTPUT"
+            echo "version=${FORCE_VERSION}" >> "$GITHUB_OUTPUT"
+            echo "revision=${FORCE_REVISION}" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
           latest_tag=$(curl -sSL \
             -H "Authorization: Bearer ${GH_TOKEN}" \
             https://api.github.com/repos/lerd-env/lerd/releases/latest \
@@ -66,6 +84,7 @@ jobs:
           else
             echo "updated=true" >> "$GITHUB_OUTPUT"
             echo "version=${latest_version}" >> "$GITHUB_OUTPUT"
+            echo "revision=1" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Write COPR credentials
@@ -83,7 +102,7 @@ jobs:
 
       - name: Build and submit
         if: steps.check.outputs.updated == 'true'
-        run: scripts/publish.sh "${{ steps.check.outputs.version }}"
+        run: scripts/publish.sh "${{ steps.check.outputs.version }}" "${{ steps.check.outputs.revision }}"
 
       - name: Record published version
         if: steps.check.outputs.updated == 'true'

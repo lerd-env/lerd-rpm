@@ -84,7 +84,8 @@ with the `%{?dist}` tag (`.fc43`, `.fc44`, …) keeping the builds apart.
 `.github/workflows/publish.yml` polls the upstream repo daily. When a new
 release appears it builds the SRPM and submits it to COPR with `copr-cli`, then
 records the version in `published-version`. Manual runs are limited to repo
-admins.
+admins, and can republish the current version with a bumped revision for
+packaging-only fixes by filling in the version and revision inputs.
 
 `.github/workflows/ci.yml` builds a binary `.rpm` in a Fedora container on
 every push and asserts it installs `/usr/bin/lerd`.
